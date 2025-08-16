@@ -94,6 +94,9 @@ int main()
             weirdCountdown();
             option = 0;
             break;
+        case 4:
+            printf("Saindo...");
+            break;
         default:
             printf("Opcao invalida. Tente novamente.\n");
             break;

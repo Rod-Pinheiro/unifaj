@@ -73,6 +73,9 @@ int main()
             calculateDaysToBirthday();
             option = 0;
             break;
+        case 3:
+            printf("Saindo...");
+            break;
         default:
             printf("Opcao invalida. Tente novamente.\n");
             break;
