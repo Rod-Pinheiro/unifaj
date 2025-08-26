@@ -7,8 +7,7 @@ void generateBoats(int boats[5])
     srand(time(NULL));
     for (int i = 0; i < 5; i++)
     {
-        boats[i] = 1 + rand() % 5;
-        printf("%d", boats[i]);
+        boats[i] = rand() % 5;
     }
 }
 
@@ -28,6 +27,7 @@ void printField(char field[5][5])
 int game()
 {
     int points = 0;
+    int tries = 0;
     int boats[5];
     generateBoats(boats);
     char field[5][5] = {{'_', '_', '_', '_', '_'},
@@ -39,28 +39,45 @@ int game()
 
     do
     {
-        int line,column;
+        int line, column;
         printf("Digite o valor de linha e coluna \n");
         scanf("%d"
               "%d",
               &line, &column);
 
-        if (boats[line -1] == column)
+        // Logica de verificacao
+        if (line < 1 || line > 5 || column < 1 || column > 5)
         {
-            field[line -1][column -1] = 'X';
+            printf("Digite valores de 1 a 5 para as posicoes \n");
+            continue;
+        }
+        if (field[line - 1][column - 1] != '_')
+        {
+            printf("Voce ja disparou nessa posicao, tente novamente \n");
+            continue;
+        }
+        // Logica de pontuacao
+        if (boats[line - 1] == column - 1)
+        {
+            field[line - 1][column - 1] = 'X';
             points += 1;
+            tries += 1;
+            printf("Acertou um barco!\n");
         }
         else
         {
-            field[line -1][column -1] = 'O';
+            field[line - 1][column - 1] = 'O';
+            tries += 1;
+            printf("Errou!\n");
         }
-        // TODO:
-        // NAO PERMITIR QUE A MESMA CASA SEJA JOGADA NOVAMENTE
-        // PARA QUE NAO SEJA POSSIVEL PONTUAR SEMPRE NA MESMA CASA
-        printf("Acertos: %d\n", points);
         printField(field);
-
     } while (points != 5);
+
+    if (points == tries)
+    {
+        printf("Perfect!!! ");
+    }
+    printf("Nao atingiu %d posicoes\n", 25 - tries);
 
     return 0;
 }
