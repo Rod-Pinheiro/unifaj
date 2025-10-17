@@ -1,5 +1,4 @@
-#include <iostream>
-using namespace std;
+#include <stdio.h>
 
 void printMatrix()
 {
@@ -8,14 +7,14 @@ void printMatrix()
         {4, 5, 6},
         {7, 8, 9}};
 
-    cout << "Matrix 3x3:" << endl;
+    printf("Matrix 3x3:\n");
     for (int i = 0; i < 3; i++)
     {
         for (int j = 0; j < 3; j++)
         {
-            cout << matrix[i][j] << " ";
+            printf("%d ", matrix[i][j]);
         }
-        cout << endl;
+        printf("\n");
     }
 }
 
@@ -48,9 +47,9 @@ void multiplyMatrix()
     {
         for (size_t j = 0; j < 3; j++)
         {
-            cout << matrixC[i][j] << " ";
+            printf("%d ", matrixC[i][j]);
         }
-        cout << endl;
+        printf("\n");
     }
 }
 
@@ -76,9 +75,9 @@ void identityMatrix()
     {
         for (int j = 0; j < 3; j++)
         {
-            cout << matrix[i][j] << " ";
+            printf("%d ", matrix[i][j]);
         }
-        cout << endl;
+        printf("\n");
     }
 }
 
@@ -87,11 +86,11 @@ int main()
     int option;
     do
     {
-        cout << "Escolha uma opcao:" << endl;
-        cout << "1 -Imprimir matriz" << endl;
-        cout << "2 - Multiplicar matriz" << endl;
-        cout << "3 - Gerar matriz identidade";
-        cout << "9 - Sair" << endl;
+        printf("Escolha uma opcao:\n");
+        printf("1 -Imprimir matriz\n");
+        printf("2 - Multiplicar matriz\n");
+        printf("3 - Gerar matriz identidade");
+        printf("9 - Sair\n");
         scanf("%d", &option);
         switch (option)
         {
