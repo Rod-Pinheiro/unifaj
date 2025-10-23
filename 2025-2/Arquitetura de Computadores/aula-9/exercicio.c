@@ -1,9 +1,19 @@
 #include <stdio.h>
 
-void imprimirInformacoes(int arr[5][5]){
+void imprimirInformacoes(int uniArr[5],int biArr[5][5]){
+    for(int i = 0; i < 5; i++){
+        if(i == 0){
+            printf("Array unidimensional: \n");
+        }
+        printf("%d, ", uniArr[i]);
+    }
+    printf("\n");
     for(int i = 0; i < 5; i++) {
+        if(i == 0){
+            printf("Array bidimensional: \n");
+        }
         for(int j = 0; j < 5; j++){
-            printf("%d, ", arr[i][j]);
+            printf("%d, ", biArr[i][j]);
         }
         printf("\n");
     }
@@ -25,6 +35,6 @@ int main() {
             }
         }
     }
-    imprimirInformacoes(biArr);
+    imprimirInformacoes(uniArr, biArr);
     return 0;
 }
