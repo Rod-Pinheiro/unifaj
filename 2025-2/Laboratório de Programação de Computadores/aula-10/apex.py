@@ -1,11 +1,14 @@
 import tkinter as tk
 import uuid
+import json
 from tkinter import messagebox
-from tkinter import simpledialog
+
+editing_user_id = None
+dialog_button = None
 
 def create_file(filename, user_data=None):
     with open(filename, 'a') as file:
-        file.write(str(user_data) + '\n' if user_data else "")
+        file.write(json.dumps(user_data) + '\n' if user_data else "")
 
 def read_file(filename):
     with open(filename, 'r') as file:
@@ -27,6 +30,7 @@ def create_frame(parent, label_text):
     return entry
 
 def create_form(parent, label_text):
+    global dialog_button
     forms = tk.Frame(parent)
     forms.config(padx=20, pady=20)
     forms.pack(pady=20)
@@ -39,19 +43,46 @@ def create_form(parent, label_text):
     dialog_button.pack(pady=20, side="bottom")
     return forms
 
+def update_user():
+    global editing_user_id, dialog_button
+    
+    user = {
+        'id': editing_user_id,
+        'name': name_entry.get(),
+        'surname': surname_entry.get(),
+        'phone': phone_entry.get(),
+        'address': address_entry.get(),
+        'zip_code': zip_entry.get(),
+    }
+
+    if all(user.values()):
+        update_user_in_file("data.txt", editing_user_id, user)
+        messagebox.showinfo("Success", f"User updated:\nName: {user['name']} {user['surname']}\nPhone: {user['phone']}\nAddress: {user['address']}\nZip: {user['zip_code']}")
+        
+
+        editing_user_id = None
+        dialog_button.config(text="Adicionar Usuário", command=add_user)
+        
+        if users_frame:
+            clear_frame(users_frame)
+            print_users(users_frame)
+            clean_entries()
+    else:
+        messagebox.showerror("Error", "Preencha todos os campos antes de atualizar o usuário.")
+
 def add_user(): 
     user = {
         'id': str(uuid.uuid4()),
         'name': name_entry.get(),
         'surname': surname_entry.get(),
         'phone': phone_entry.get(),
-        'address': adress_entry.get(),
+        'address': address_entry.get(),
         'zip_code': zip_entry.get(),
     }
 
     if all(user.values()):
-        messagebox.showinfo("Success", f"User added:\nName: {user['name']} {user['surname']}\nPhone: {user['phone']}\nAddress: {user['address']}\nZip: {user['zip_code']}")
         create_file("data.txt", user)
+        messagebox.showinfo("Success", f"User added:\nName: {user['name']} {user['surname']}\nPhone: {user['phone']}\nAddress: {user['address']}\nZip: {user['zip_code']}")
         if users_frame:
             clear_frame(users_frame)
             print_users(users_frame)
@@ -68,7 +99,7 @@ def print_users(frame):
         for line in users.split('\n'):
             if line.strip():
                 try:
-                    user_dict = eval(line)
+                    user_dict = json.loads(line)
                     user_row = tk.Frame(frame)
                     user_row.pack(fill="x", pady=2)
                     content_frame = tk.Frame(user_row)
@@ -78,17 +109,62 @@ def print_users(frame):
                     edit_button = tk.Button(content_frame, text="Editar", command=lambda uid=user_dict['id']: edit_user(uid))
                     edit_button.pack(side="left", padx=(10, 0))
                     print(f"User: {user_dict['name']} {user_dict['surname']}")
-                except (ValueError, SyntaxError):
+                except (ValueError, json.JSONDecodeError):
                     print(f"Error parsing line: {line}")    
 
+def update_user_in_file(filename, user_id, updated_user):
+    users = []
+    with open(filename, 'r') as file:
+        for line in file:
+            if line.strip():
+                try:
+                    user_dict = json.loads(line)
+                    if user_dict['id'] == user_id:
+                        users.append(json.dumps(updated_user))
+                    else:
+                        users.append(line.strip())
+                except (ValueError, json.JSONDecodeError):
+                    users.append(line.strip())
+    
+    with open(filename, 'w') as file:
+        for user_line in users:
+            file.write(user_line + '\n')
+            
 def edit_user(user_id):
-    pass #  TODO: Implement edit user functionality
+    global editing_user_id, dialog_button
+    
+    with open("data.txt", 'r') as file:
+        for line in file:
+            if line.strip():
+                try:
+                    user_dict = json.loads(line)
+                    if user_dict['id'] == user_id:
+                        name_entry.delete(0, tk.END)
+                        name_entry.insert(0, user_dict['name'])
+                        
+                        surname_entry.delete(0, tk.END)
+                        surname_entry.insert(0, user_dict['surname'])
+                        
+                        phone_entry.delete(0, tk.END)
+                        phone_entry.insert(0, user_dict['phone'])
+                        
+                        address_entry.delete(0, tk.END)
+                        address_entry.insert(0, user_dict['address'])
+                        
+                        zip_entry.delete(0, tk.END)
+                        zip_entry.insert(0, user_dict['zip_code'])
+                        
+                        editing_user_id = user_id
+                        dialog_button.config(text="Atualizar Usuário", command=update_user)
+                        break
+                except (ValueError, json.JSONDecodeError):
+                    continue
 
 def clean_entries():
     name_entry.delete(0, tk.END)
     surname_entry.delete(0, tk.END)
     phone_entry.delete(0, tk.END)
-    adress_entry.delete(0, tk.END)
+    address_entry.delete(0, tk.END)
     zip_entry.delete(0, tk.END)
 
 window = tk.Tk()
@@ -103,13 +179,14 @@ surname_entry = create_frame(forms, "Sobrenome:")
 
 phone_entry = create_frame(forms, "Telefone:")
 
-adress_entry = create_frame(forms, "Endereço:")
+address_entry = create_frame(forms, "Endereço:")
 
 zip_entry = create_frame(forms, "CEP:")
 
 users_frame = tk.Frame(window)
 users_frame.pack(fill="x", pady=5)
 
+create_file("data.txt")
 print_users(users_frame)
 
 
