@@ -18,7 +18,7 @@ int insertEven(int *n2)
             fprintf(file, "%d\n", *n2);
             fclose(file);
         }
-    } while (*n2 != 100);
+    } while (*n2 % 2 != 0);
     return 0;
 }
 
@@ -40,17 +40,19 @@ int insertOdd(int *n1)
             fprintf(file, "%d\n", *n1);
             fclose(file);
         }
-    } while (*n1 != 99);
+    } while (*n1 % 2 == 0);
     return 0;
 }
 
 int insert()
 {
     int n1, n2;
-
-    insertOdd(&n1);
-    insertEven(&n2);
-
+    do{
+        
+        insertOdd(&n1);
+        insertEven(&n2);
+    
+    }while(!(n1 == 99 && n2 == 100));
     return 0;
 }
 
@@ -161,6 +163,8 @@ int main()
         case 2:
             readMenu();
             break;
+        case 3:
+            printf("Saindo...");
         default:
             printf("Digite uma opcao valida");
         }
