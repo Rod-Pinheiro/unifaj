@@ -21,6 +21,16 @@ struct Discipline
     char curso[42];
 };
 
+struct Score
+{
+    int id;
+    int studentId;
+    char studentName[42];
+    int disciplineId;
+    char disciplineName[42];
+    float avgScore;
+};
+
 int saveStudent(struct Student student)
 {
     char filename[5] = "";
@@ -37,11 +47,31 @@ int saveStudent(struct Student student)
     return 0;
 }
 
-int printStudents()
+int printStudents(char *filter)
 {
+    if (filter != NULL)
+    {
+        char filename[5] = "";
+        filename[0] = filter[0];
+        strcat(filename, ".txt");
+        FILE *file = fopen(filename, "r");
+        if (file == NULL)
+        {
+            printf("Erro ao abrir o arquivo.\n");
+            return 1;
+        }
+        char line[200];
+        while (fgets(line, sizeof(line), file))
+        {
+            printf("%s", line);
+        }
+        fclose(file);
+        return 0;
+    }
+
     char filename[100] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 52; i++)
     {
         char line[200];
         char currentFilename[5] = "";
@@ -71,7 +101,7 @@ int editStudent()
     int id;
     int option;
     int found = 0;
-    
+
     printf("Digite a letra inicial do nome do aluno: ");
     getchar();
     scanf("%c", &firstLetter);
@@ -89,12 +119,11 @@ int editStudent()
         lineCount++;
     }
     fclose(file);
-    
+
     printf("Digite o ID do aluno que deseja editar: ");
     getchar();
     scanf("%d", &id);
 
-    
     for (int i = 0; i < lineCount; i++)
     {
         struct Student student;
@@ -190,36 +219,6 @@ int createStudent()
     return 0;
 }
 
-int studentsMenu()
-{
-    int option = 0;
-    do
-    {
-        printf("1) Consultar alunos\n");
-        printf("2) Cadastrar alunos\n");
-        printf("3) Editar alunos\n");
-        printf("4) Voltar ao menu inicial\n");
-        scanf("%d", &option);
-        switch (option)
-        {
-        case 1:
-            printStudents();
-            break;
-        case 2:
-            createStudent();
-            break;
-        case 3:
-            editStudent();
-            break;
-        case 4:
-            printf("Voltando ao menu principal...\n");
-        default:
-            break;
-        }
-    } while (option != 4);
-    return 0;
-}
-
 int saveDiscipline(struct Discipline discipline)
 {
     FILE *file = fopen("disciplines.txt", "a");
@@ -265,8 +264,29 @@ int createDiscipline()
     return 0;
 }
 
-int printDisciplines()
+int printDisciplines(int *idFilter)
 {
+    if (idFilter != NULL)
+    {
+        char line[200];
+        FILE *file = fopen("disciplines.txt", "r");
+        if (file == NULL)
+        {
+            printf("Erro ao abrir o arquivo.\n");
+            return 1;
+        }
+        while (fgets(line, sizeof(line), file))
+        {
+            struct Discipline discipline;
+            sscanf(line, "%d,%[^,],%[^,],%[^,],%[^\n]", &discipline.id, discipline.nome, discipline.professor, discipline.semestre, discipline.curso);
+            if (discipline.id == *idFilter)
+            {
+                printf("%s", line);
+            }
+        }
+        fclose(file);
+        return 0;
+    }
     char line[200];
     FILE *file = fopen("disciplines.txt", "r");
     if (file == NULL)
@@ -353,6 +373,179 @@ int editDiscipline()
     return 0;
 }
 
+int printScores(int *studentId, int *disciplineId)
+{       
+    char line[200];
+    struct Score score;
+    FILE *file = fopen("scores.txt", "r");
+    if (file == NULL)
+    {
+        printf("Erro ao abrir o arquivo.\n");
+        return 1;
+    }
+
+    while (fgets(line, sizeof(line), file))
+    {
+        sscanf(line, "%d,%d,%[^,],%d,%[^,],%f", &score.id, &score.studentId, score.studentName, &score.disciplineId, score.disciplineName, &score.avgScore);
+        printf("Aluno: %s | Disciplina: %s | Media: %.2f\n", score.studentName, score.disciplineName, score.avgScore);
+    }
+    fclose(file);
+    return 0;
+}
+
+int createScore()
+{
+    // TODO: Validar se o aluno e a disciplina existem antes de criar a nota
+    char firstLetter;
+    char filename[5] = "";
+    char line[200];
+    float firstBimester;
+    float secondBimester;
+    struct Score score;
+
+    printf("Digite a primeira letra do nome do aluno: ");
+    scanf(" %c", &firstLetter);
+    // Bug: Quando a letra digitada não tem alunos cadastrados, o programa falha ao tentar abrir o arquivo. 
+    // Mas a funcao continua para o proximo passo, que tambem falha ao tentar encontrar o aluno.
+    printStudents(&firstLetter);
+
+    printf("Digite o ID do aluno: ");
+    scanf("%d", &score.studentId);
+
+    // Find student name
+    char studentFilename[5] = "";
+    studentFilename[0] = firstLetter;
+    strcat(studentFilename, ".txt");
+    FILE *studentFile = fopen(studentFilename, "r");
+    if (studentFile != NULL)
+    {
+        while (fgets(line, sizeof(line), studentFile))
+        {
+            struct Student s;
+            sscanf(line, "%d,%[^,],%[^,],%[^,],%d,%[^,],%[^\n]", &s.id, s.nome, s.dataNascimento, s.curso, &s.anoIngresso, s.telefone, s.endereco);
+            if (s.id == score.studentId)
+            {
+                strcpy(score.studentName, s.nome);
+                break;
+            }
+        }
+        fclose(studentFile);
+    }
+
+    printDisciplines(NULL);
+    printf("Digite o ID da disciplina: ");
+    scanf("%d", &score.disciplineId);
+
+    // Find discipline name
+    FILE *disciplineFile = fopen("disciplines.txt", "r");
+    if (disciplineFile != NULL)
+    {
+        while (fgets(line, sizeof(line), disciplineFile))
+        {
+            struct Discipline d;
+            sscanf(line, "%d,%[^,],%[^,],%[^,],%[^\n]", &d.id, d.nome, d.professor, d.semestre, d.curso);
+            if (d.id == score.disciplineId)
+            {
+                strcpy(score.disciplineName, d.nome);
+                break;
+            }
+        }
+        fclose(disciplineFile);
+    }
+
+
+
+
+    printf("Digite a nota do primeiro bimestre: ");
+    scanf("%f", &firstBimester);
+    printf("Digite a nota do segundo bimestre: ");
+    scanf("%f", &secondBimester);
+
+    score.avgScore = (firstBimester + secondBimester) / 2.0;
+
+    // Set score id
+    FILE *idFile = fopen("next_score_id.txt", "r");
+    if (idFile == NULL)
+    {
+        score.id = 1;
+    }
+    else
+    {
+        fscanf(idFile, "%d", &score.id);
+        fclose(idFile);
+    }
+    idFile = fopen("next_score_id.txt", "w");
+    fprintf(idFile, "%d", score.id + 1);
+    fclose(idFile);
+
+    FILE *file = fopen("scores.txt", "a");
+    if (file == NULL)
+    {
+        printf("Erro ao abrir o arquivo.\n");
+        return 1;
+    }
+    fprintf(file, "%d,%d,%s,%d,%s,%.2f\n", score.id, score.studentId, score.studentName, score.disciplineId, score.disciplineName, score.avgScore);
+    fclose(file);
+
+    return 0;
+}
+
+int deleteScore()
+{
+    int id;
+    char lines[100][200];
+    int lineCount = 0;
+    int found = 0;
+    FILE *file = fopen("scores.txt", "r");
+    if (file == NULL)
+    {
+        printf("Erro ao abrir o arquivo.\n");
+        return 1;
+    }
+    while (fgets(lines[lineCount], sizeof(lines[lineCount]), file))
+    {
+        printf("%s", lines[lineCount]);
+        lineCount++;
+    }
+    fclose(file);
+
+    printf("Digite o ID da nota que deseja excluir: ");
+    getchar();
+    scanf("%d", &id);
+
+    for (int i = 0; i < lineCount; i++)
+    {
+        struct Score score;
+        sscanf(lines[i], "%d,%d,%[^,],%d,%[^,],%f", &score.id, &score.studentId, score.studentName, &score.disciplineId, score.disciplineName, &score.avgScore);
+        if (score.id == id)
+        {
+            found = 1;
+            for (int j = i; j < lineCount - 1; j++)
+            {
+                strcpy(lines[j], lines[j + 1]);
+            }
+            lineCount--;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        printf("Nota com ID %d nao encontrada.\n", id);
+        return 1;
+    }
+
+    file = fopen("scores.txt", "w");
+    for (int i = 0; i < lineCount; i++)
+    {
+        fprintf(file, "%s", lines[i]);
+    }
+    fclose(file);
+    printf("Nota com ID %d excluida com sucesso.\n", id);
+    
+    return 0;
+}
+// MENUS
 int disciplineMenu()
 {
     int option = 0;
@@ -366,7 +559,7 @@ int disciplineMenu()
         switch (option)
         {
         case 1:
-            printDisciplines();
+            printDisciplines(NULL);
             break;
         case 2:
             createDiscipline();
@@ -383,23 +576,56 @@ int disciplineMenu()
     return 0;
 }
 
+int studentsMenu()
+{
+    int option = 0;
+    do
+    {
+        printf("1) Consultar alunos\n");
+        printf("2) Cadastrar alunos\n");
+        printf("3) Editar alunos\n");
+        printf("4) Voltar ao menu inicial\n");
+        scanf("%d", &option);
+        switch (option)
+        {
+        case 1:
+            printStudents(NULL);
+            break;
+        case 2:
+            createStudent();
+            break;
+        case 3:
+            editStudent();
+            break;
+        case 4:
+            printf("Voltando ao menu principal...\n");
+        default:
+            break;
+        }
+    } while (option != 4);
+    return 0;
+}
+
 int scoreMenu()
 {
     int option = 0;
     do
     {
-        printf("1) Consultar notas");
-        printf("2) Cadastrar notas");
-        printf("3) Excluir nota");
-        printf("4) Voltar ao menu inicial");
+        printf("1) Consultar notas\n");
+        printf("2) Cadastrar notas\n");
+        printf("3) Excluir nota\n");
+        printf("4) Voltar ao menu inicial\n");
         scanf("%d", &option);
         switch (option)
         {
         case 1:
+            printScores(NULL, NULL);
             break;
         case 2:
+            createScore();
             break;
         case 3:
+            deleteScore();
             break;
         case 4:
             printf("Voltando ao menu principal...");
@@ -430,6 +656,7 @@ int main()
             disciplineMenu();
             break;
         case 3:
+            scoreMenu();
             break;
         case 4:
             break;
