@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  iot-parking-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - ESP32_BASE_URL=${ESP32_BASE_URL:-http://192.168.4.1}
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/esp32/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - iot-network
+
+networks:
+  iot-network:
+    driver: bridge
