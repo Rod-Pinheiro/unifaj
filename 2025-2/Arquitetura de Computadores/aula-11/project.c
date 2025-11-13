@@ -31,10 +31,11 @@ struct Score
     float avgScore;
 };
 
+// Salva aluno em arquivo baseado na primeira letra do nome
 int saveStudent(struct Student student)
 {
     char filename[5] = "";
-    filename[0] = student.nome[0];
+    filename[0] = student.nome[0];  // Usa primeira letra como nome do arquivo
     strcat(filename, ".txt");
     FILE *file = fopen(filename, "a");
     if (file == NULL)
@@ -47,12 +48,13 @@ int saveStudent(struct Student student)
     return 0;
 }
 
+// Exibe alunos com filtro opcional por letra inicial
 int printStudents(char *filter)
 {
     if (filter != NULL)
     {
         char filename[5] = "";
-        filename[0] = filter[0];
+        filename[0] = filter[0];  // Filtra por letra específica
         strcat(filename, ".txt");
         FILE *file = fopen(filename, "r");
         if (file == NULL)
@@ -71,11 +73,12 @@ int printStudents(char *filter)
 
     char filename[100] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+    // Busca em todos os arquivos do alfabeto
     for (int i = 0; i < 52; i++)
     {
         char line[200];
         char currentFilename[5] = "";
-        currentFilename[0] = filename[i];
+        currentFilename[0] = filename[i];  // Gera nome A.txt, B.txt, etc.
         strcat(currentFilename, ".txt");
         FILE *file = fopen(currentFilename, "r");
         if (file == NULL)
@@ -92,11 +95,12 @@ int printStudents(char *filter)
     return 0;
 }
 
+// Edita dados de aluno existente buscando por ID
 int editStudent()
 {
     char firstLetter;
     char filename[5] = "";
-    char lines[100][200];
+    char lines[100][200];  // Array temporário para edição segura
     int lineCount = 0;
     int id;
     int option;
@@ -124,6 +128,7 @@ int editStudent()
     getchar();
     scanf("%d", &id);
 
+    // Busca aluno por ID no array carregado
     for (int i = 0; i < lineCount; i++)
     {
         struct Student student;
@@ -183,6 +188,7 @@ int editStudent()
     return 0;
 }
 
+// Cadastra novo aluno com ID automático
 int createStudent()
 {
     struct Student student;
@@ -199,6 +205,7 @@ int createStudent()
     printf("Digite o endereco do aluno: ");
     scanf("%s", student.endereco);
 
+    // Gera ID automático incremental
     fopen("next_student_id.txt", "r");
     FILE *idFile = fopen("next_student_id.txt", "r");
     if (idFile == NULL)
@@ -302,9 +309,10 @@ int printDisciplines(int *idFilter)
     return 0;
 }
 
+// Edita disciplina existente buscando por ID
 int editDiscipline()
 {
-    char lines[100][200];
+    char lines[100][200];  // Array temporário para edição
     int id;
     int option;
     int found = 0;
@@ -315,6 +323,7 @@ int editDiscipline()
         return 1;
     }
     int lineCount = 0;
+    // Carrega disciplinas para memória
     while (fgets(lines[lineCount], sizeof(lines[lineCount]), file))
     {
         printf("%s", lines[lineCount]);
@@ -324,6 +333,7 @@ int editDiscipline()
     printf("Digite o ID da disciplina que deseja editar: ");
     getchar();
     scanf("%d", &id);
+    // Busca disciplina por ID
     for (int i = 0; i < lineCount; i++)
     {
         struct Discipline discipline;
@@ -393,6 +403,7 @@ int printScores(int *studentId, int *disciplineId)
     return 0;
 }
 
+// Cadastra nota validando aluno, disciplina e duplicidade
 int createScore()
 {
     char firstLetter;
@@ -479,7 +490,7 @@ int createScore()
         return 1;
     }
 
-    // Verificar se já existe uma nota para este aluno e disciplina
+    // Verifica duplicidade de nota para mesmo aluno/disciplina
     FILE *existingScoresFile = fopen("scores.txt", "r");
     if (existingScoresFile != NULL)
     {
@@ -487,7 +498,7 @@ int createScore()
         while (fgets(existingLine, sizeof(existingLine), existingScoresFile))
         {
             struct Score existingScore;
-            sscanf(existingLine, "%d,%d,%[^,],%d,%[^,],%f", &existingScore.id, &existingScore.studentId, existingScore.studentName, &existingScore.disciplineId, existingScore.disciplineName, &existingScore.avgScore);
+            sscanf(existingLine, "%d,%d,%[^,],%d,%[^,],%f", &existingScore.id, &existingScore.studentId, existingScore.studentName, &existingScore.disciplineId, &existingScore.disciplineName, &existingScore.avgScore);
             if (existingScore.studentId == score.studentId && existingScore.disciplineId == score.disciplineId)
             {
                 printf("Ja existe uma nota cadastrada para o aluno %s na disciplina %s.\n", score.studentName, score.disciplineName);
@@ -503,9 +514,9 @@ int createScore()
     printf("Digite a nota do segundo bimestre: ");
     scanf("%f", &secondBimester);
 
-    score.avgScore = (firstBimester + secondBimester) / 2.0;
+    score.avgScore = (firstBimester + secondBimester) / 2.0;  // Calcula média
 
-    // Set score id
+    // Gera ID automático
     FILE *idFile = fopen("next_score_id.txt", "r");
     if (idFile == NULL)
     {
@@ -532,6 +543,7 @@ int createScore()
     return 0;
 }
 
+// Remove nota de aluno em disciplina específica
 int deleteScore()
 {
     char firstLetter;
@@ -540,7 +552,7 @@ int deleteScore()
     int studentId;
     int disciplineId;
     int found = 0;
-    char lines[100][200];
+    char lines[100][200];  // Array temporário para remoção segura
     int lineCount = 0;
 
     printf("Digite a primeira letra do nome do aluno: ");
@@ -585,7 +597,7 @@ int deleteScore()
         return 1;
     }
 
-    // Mostrar disciplinas que o aluno tem notas
+    // Lista disciplinas do aluno para escolha
     FILE *scoresFile = fopen("scores.txt", "r");
     if (scoresFile == NULL)
     {
@@ -597,7 +609,7 @@ int deleteScore()
     while (fgets(line, sizeof(line), scoresFile))
     {
         struct Score score;
-        sscanf(line, "%d,%d,%[^,],%d,%[^,],%f", &score.id, &score.studentId, score.studentName, &score.disciplineId, score.disciplineName, &score.avgScore);
+        sscanf(line, "%d,%d,%[^,],%d,%[^,],%f", &score.id, &score.studentId, score.studentName, &score.disciplineId, &score.disciplineName, &score.avgScore);
         if (score.studentId == studentId)
         {
             printf("ID: %d - %s\n", score.disciplineId, score.disciplineName);
@@ -608,7 +620,7 @@ int deleteScore()
     printf("Digite o ID da disciplina: ");
     scanf("%d", &disciplineId);
 
-    // Ler todas as notas para o array
+    // Carrega notas para array para manipulação segura
     scoresFile = fopen("scores.txt", "r");
     if (scoresFile == NULL)
     {
@@ -622,15 +634,15 @@ int deleteScore()
     }
     fclose(scoresFile);
 
-    // Procurar e remover a nota
+    // Busca e remove nota do array
     for (int i = 0; i < lineCount; i++)
     {
         struct Score score;
-        sscanf(lines[i], "%d,%d,%[^,],%d,%[^,],%f", &score.id, &score.studentId, score.studentName, &score.disciplineId, score.disciplineName, &score.avgScore);
+        sscanf(lines[i], "%d,%d,%[^,],%d,%[^,],%f", &score.id, &score.studentId, score.studentName, &score.disciplineId, &score.disciplineName, &score.avgScore);
         if (score.studentId == studentId && score.disciplineId == disciplineId)
         {
             found = 1;
-            // Remover a linha movendo as próximas para cima
+            // Remove linha deslocando próximas para cima
             for (int j = i; j < lineCount - 1; j++)
             {
                 strcpy(lines[j], lines[j + 1]);
@@ -646,7 +658,7 @@ int deleteScore()
         return 1;
     }
 
-    // Reescrever o arquivo sem a nota removida
+    // Reescreve arquivo sem a nota removida
     scoresFile = fopen("scores.txt", "w");
     for (int i = 0; i < lineCount; i++)
     {
