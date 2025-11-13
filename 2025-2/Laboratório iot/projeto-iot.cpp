@@ -107,10 +107,22 @@ void loop() {
     tempoEntrada = millis(); // marca o tempo que abriu
   }
   if (entradaAberta && !entradaAbertaManualmente && millis() - tempoEntrada > TEMPO_FECHAR) {
-    fechaEntrada();
+    // Verifica se o sensor está desobstruído antes de fechar
+    if (digitalRead(sensorEntrada) == HIGH) {
+      fechaEntrada();
+    } else {
+      // Mantém aberta se houver obstrução
+      tempoEntrada = millis(); // Reseta o tempo para tentar novamente
+    }
   }
   if (entradaAberta && entradaAbertaManualmente && millis() - tempoEntrada > TEMPO_FECHAR_MANUAL) {
-    fechaEntrada();
+    // Verifica se o sensor está desobstruído antes de fechar
+    if (digitalRead(sensorEntrada) == HIGH) {
+      fechaEntrada();
+    } else {
+      // Mantém aberta se houver obstrução
+      tempoEntrada = millis(); // Reseta o tempo para tentar novamente
+    }
   }
 
   // ---- Cancela da SAÍDA ----
@@ -119,7 +131,13 @@ void loop() {
     tempoSaida = millis(); // marca o tempo que abriu
   }
   if (saidaAberta && millis() - tempoSaida > TEMPO_FECHAR) {
-    fechaSaida();
+    // Verifica se o sensor está desobstruído antes de fechar
+    if (digitalRead(sensorSaida) == HIGH) {
+      fechaSaida();
+    } else {
+      // Mantém aberta se houver obstrução
+      tempoSaida = millis(); // Reseta o tempo para tentar novamente
+    }
   }
 
   // ---- Comunicação com ESP32 ----
