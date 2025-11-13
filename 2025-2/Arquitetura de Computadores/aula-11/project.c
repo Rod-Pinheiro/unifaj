@@ -395,7 +395,6 @@ int printScores(int *studentId, int *disciplineId)
 
 int createScore()
 {
-    // TODO: Validar se o aluno e a disciplina existem antes de criar a nota
     char firstLetter;
     char filename[5] = "";
     char line[200];
@@ -405,31 +404,47 @@ int createScore()
 
     printf("Digite a primeira letra do nome do aluno: ");
     scanf(" %c", &firstLetter);
-    // Bug: Quando a letra digitada não tem alunos cadastrados, o programa falha ao tentar abrir o arquivo. 
-    // Mas a funcao continua para o proximo passo, que tambem falha ao tentar encontrar o aluno.
+    
+    // Verificar se existem alunos com a letra inicial antes de continuar
+    char studentFilename[5] = "";
+    studentFilename[0] = firstLetter;
+    strcat(studentFilename, ".txt");
+    FILE *studentFile = fopen(studentFilename, "r");
+    if (studentFile == NULL)
+    {
+        printf("Nao existem alunos cadastrados com a letra '%c'.\n", firstLetter);
+        return 1;
+    }
+    
     printStudents(&firstLetter);
 
     printf("Digite o ID do aluno: ");
     scanf("%d", &score.studentId);
 
-    // Find student name
-    char studentFilename[5] = "";
-    studentFilename[0] = firstLetter;
-    strcat(studentFilename, ".txt");
-    FILE *studentFile = fopen(studentFilename, "r");
-    if (studentFile != NULL)
+    if (studentFile == NULL)
     {
-        while (fgets(line, sizeof(line), studentFile))
+        printf("Erro ao abrir arquivo de alunos.\n");
+        return 1;
+    }
+    
+    int studentFound = 0;
+    while (fgets(line, sizeof(line), studentFile))
+    {
+        struct Student s;
+        sscanf(line, "%d,%[^,],%[^,],%[^,],%d,%[^,],%[^\n]", &s.id, s.nome, s.dataNascimento, s.curso, &s.anoIngresso, s.telefone, s.endereco);
+        if (s.id == score.studentId)
         {
-            struct Student s;
-            sscanf(line, "%d,%[^,],%[^,],%[^,],%d,%[^,],%[^\n]", &s.id, s.nome, s.dataNascimento, s.curso, &s.anoIngresso, s.telefone, s.endereco);
-            if (s.id == score.studentId)
-            {
-                strcpy(score.studentName, s.nome);
-                break;
-            }
+            strcpy(score.studentName, s.nome);
+            studentFound = 1;
+            break;
         }
-        fclose(studentFile);
+    }
+    fclose(studentFile);
+    
+    if (!studentFound)
+    {
+        printf("Aluno com ID %d nao encontrado.\n", score.studentId);
+        return 1;
     }
 
     printDisciplines(NULL);
@@ -438,23 +453,50 @@ int createScore()
 
     // Find discipline name
     FILE *disciplineFile = fopen("disciplines.txt", "r");
-    if (disciplineFile != NULL)
+    if (disciplineFile == NULL)
     {
-        while (fgets(line, sizeof(line), disciplineFile))
+        printf("Erro ao abrir arquivo de disciplinas.\n");
+        return 1;
+    }
+    
+    int disciplineFound = 0;
+    while (fgets(line, sizeof(line), disciplineFile))
+    {
+        struct Discipline d;
+        sscanf(line, "%d,%[^,],%[^,],%[^,],%[^\n]", &d.id, d.nome, d.professor, d.semestre, d.curso);
+        if (d.id == score.disciplineId)
         {
-            struct Discipline d;
-            sscanf(line, "%d,%[^,],%[^,],%[^,],%[^\n]", &d.id, d.nome, d.professor, d.semestre, d.curso);
-            if (d.id == score.disciplineId)
-            {
-                strcpy(score.disciplineName, d.nome);
-                break;
-            }
+            strcpy(score.disciplineName, d.nome);
+            disciplineFound = 1;
+            break;
         }
-        fclose(disciplineFile);
+    }
+    fclose(disciplineFile);
+    
+    if (!disciplineFound)
+    {
+        printf("Disciplina com ID %d nao encontrada.\n", score.disciplineId);
+        return 1;
     }
 
-
-
+    // Verificar se já existe uma nota para este aluno e disciplina
+    FILE *existingScoresFile = fopen("scores.txt", "r");
+    if (existingScoresFile != NULL)
+    {
+        char existingLine[200];
+        while (fgets(existingLine, sizeof(existingLine), existingScoresFile))
+        {
+            struct Score existingScore;
+            sscanf(existingLine, "%d,%d,%[^,],%d,%[^,],%f", &existingScore.id, &existingScore.studentId, existingScore.studentName, &existingScore.disciplineId, existingScore.disciplineName, &existingScore.avgScore);
+            if (existingScore.studentId == score.studentId && existingScore.disciplineId == score.disciplineId)
+            {
+                printf("Ja existe uma nota cadastrada para o aluno %s na disciplina %s.\n", score.studentName, score.disciplineName);
+                fclose(existingScoresFile);
+                return 1;
+            }
+        }
+        fclose(existingScoresFile);
+    }
 
     printf("Digite a nota do primeiro bimestre: ");
     scanf("%f", &firstBimester);
