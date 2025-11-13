@@ -772,6 +772,8 @@ int main()
             scoreMenu();
             break;
         case 4:
+            printf("Autores do projeto:\n");
+            printf("Rodolfo R. Pinheiro\n");
             break;
         case 5:
             break;
