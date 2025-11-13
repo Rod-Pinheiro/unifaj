@@ -492,34 +492,103 @@ int createScore()
 
 int deleteScore()
 {
-    int id;
+    char firstLetter;
+    char filename[5] = "";
+    char line[200];
+    int studentId;
+    int disciplineId;
+    int found = 0;
     char lines[100][200];
     int lineCount = 0;
-    int found = 0;
-    FILE *file = fopen("scores.txt", "r");
-    if (file == NULL)
+
+    printf("Digite a primeira letra do nome do aluno: ");
+    scanf(" %c", &firstLetter);
+    
+    // Verificar se existem alunos com a letra inicial
+    char studentFilename[5] = "";
+    studentFilename[0] = firstLetter;
+    strcat(studentFilename, ".txt");
+    FILE *studentFile = fopen(studentFilename, "r");
+    if (studentFile == NULL)
     {
-        printf("Erro ao abrir o arquivo.\n");
+        printf("Nao existem alunos cadastrados com a letra '%c'.\n", firstLetter);
         return 1;
     }
-    while (fgets(lines[lineCount], sizeof(lines[lineCount]), file))
+    
+    printStudents(&firstLetter);
+
+    printf("Digite o ID do aluno: ");
+    scanf("%d", &studentId);
+
+    // Verificar se o aluno existe
+    rewind(studentFile);
+    int studentFound = 0;
+    char studentName[42] = "";
+    while (fgets(line, sizeof(line), studentFile))
     {
-        printf("%s", lines[lineCount]);
+        struct Student s;
+        sscanf(line, "%d,%[^,],%[^,],%[^,],%d,%[^,],%[^\n]", &s.id, s.nome, s.dataNascimento, s.curso, &s.anoIngresso, s.telefone, s.endereco);
+        if (s.id == studentId)
+        {
+            strcpy(studentName, s.nome);
+            studentFound = 1;
+            break;
+        }
+    }
+    fclose(studentFile);
+    
+    if (!studentFound)
+    {
+        printf("Aluno com ID %d nao encontrado.\n", studentId);
+        return 1;
+    }
+
+    // Mostrar disciplinas que o aluno tem notas
+    FILE *scoresFile = fopen("scores.txt", "r");
+    if (scoresFile == NULL)
+    {
+        printf("Erro ao abrir arquivo de notas.\n");
+        return 1;
+    }
+    
+    printf("Disciplinas do aluno %s:\n", studentName);
+    while (fgets(line, sizeof(line), scoresFile))
+    {
+        struct Score score;
+        sscanf(line, "%d,%d,%[^,],%d,%[^,],%f", &score.id, &score.studentId, score.studentName, &score.disciplineId, score.disciplineName, &score.avgScore);
+        if (score.studentId == studentId)
+        {
+            printf("ID: %d - %s\n", score.disciplineId, score.disciplineName);
+        }
+    }
+    fclose(scoresFile);
+
+    printf("Digite o ID da disciplina: ");
+    scanf("%d", &disciplineId);
+
+    // Ler todas as notas para o array
+    scoresFile = fopen("scores.txt", "r");
+    if (scoresFile == NULL)
+    {
+        printf("Erro ao abrir arquivo de notas.\n");
+        return 1;
+    }
+    
+    while (fgets(lines[lineCount], sizeof(lines[lineCount]), scoresFile))
+    {
         lineCount++;
     }
-    fclose(file);
+    fclose(scoresFile);
 
-    printf("Digite o ID da nota que deseja excluir: ");
-    getchar();
-    scanf("%d", &id);
-
+    // Procurar e remover a nota
     for (int i = 0; i < lineCount; i++)
     {
         struct Score score;
         sscanf(lines[i], "%d,%d,%[^,],%d,%[^,],%f", &score.id, &score.studentId, score.studentName, &score.disciplineId, score.disciplineName, &score.avgScore);
-        if (score.id == id)
+        if (score.studentId == studentId && score.disciplineId == disciplineId)
         {
             found = 1;
+            // Remover a linha movendo as próximas para cima
             for (int j = i; j < lineCount - 1; j++)
             {
                 strcpy(lines[j], lines[j + 1]);
@@ -531,17 +600,19 @@ int deleteScore()
 
     if (!found)
     {
-        printf("Nota com ID %d nao encontrada.\n", id);
+        printf("Nao existe nota cadastrada para o aluno %s na disciplina selecionada.\n", studentName);
         return 1;
     }
 
-    file = fopen("scores.txt", "w");
+    // Reescrever o arquivo sem a nota removida
+    scoresFile = fopen("scores.txt", "w");
     for (int i = 0; i < lineCount; i++)
     {
-        fprintf(file, "%s", lines[i]);
+        fprintf(scoresFile, "%s", lines[i]);
     }
-    fclose(file);
-    printf("Nota com ID %d excluida com sucesso.\n", id);
+    fclose(scoresFile);
+    
+    printf("Nota do aluno %s excluida com sucesso.\n", studentName);
     
     return 0;
 }
