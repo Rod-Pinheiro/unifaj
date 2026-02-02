@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Estacionamento IoT - Mock</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        h1 { text-align: center; color: #333; }
+        .mock-notice { background: #ffeb3b; padding: 10px; border-radius: 5px; margin-bottom: 20px; text-align: center; }
+        .parking-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .parking-spot { padding: 20px; text-align: center; border-radius: 5px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .occupied { background: #ff4444; color: white; }
+        .free { background: #44ff44; color: white; }
+        .gates { display: flex; justify-content: space-around; margin: 20px 0; }
+        .gate { padding: 15px; text-align: center; border-radius: 5px; min-width: 150px; }
+        .gate-open { background: #ffaa00; color: white; }
+        .gate-closed { background: #666; color: white; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-open { background: #4CAF50; color: white; }
+        .btn-open:hover { background: #45a049; }
+        .status { text-align: center; margin: 10px 0; }
+        .controls { background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .controls h3 { margin-top: 0; }
+        .control-group { margin: 10px 0; }
+        .control-group label { display: inline-block; width: 120px; }
+        .api-status { background: #e3f2fd; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 Estacionamento IoT - Mock Dashboard</h1>
+        
+        <div class="mock-notice">
+            <strong>🔧 MODO MOCK</strong> - Simulação para testes sem hardware
+        </div>
+        
+        <div class="controls">
+            <h3>Controles de Simulação</h3>
+            <div class="control-group">
+                <label>Auto Toggle:</label>
+                <input type="checkbox" id="autoToggle" checked>
+                <small>Alterna automaticamente vagas a cada 3s</small>
+            </div>
+            <div class="control-group">
+                <label>Simular API:</label>
+                <input type="checkbox" id="simulateApi" checked>
+                <small>Simula respostas da API</small>
+            </div>
+            <div class="control-group">
+                <button onclick="randomizeParking()">🎲 Randomizar Vagas</button>
+                <button onclick="toggleAllGates()">🚪 Toggle Cancelas</button>
+            </div>
+        </div>
+        
+        <div class="status">
+            <h3>Status das Vagas</h3>
+            <div class="parking-grid" id="parkingGrid">
+                <!-- Vagas serão preenchidas via JavaScript -->
+            </div>
+        </div>
+        
+        <div class="status">
+            <h3>Status das Cancelas</h3>
+            <div class="gates">
+                <div class="gate" id="entranceGate">
+                    <h4>Entrada</h4>
+                    <div id="entranceStatus">Carregando...</div>
+                    <button class="btn-open" onclick="openGate('entrance')">Abrir Entrada</button>
+                </div>
+                <div class="gate" id="exitGate">
+                    <h4>Saída</h4>
+                    <div id="exitStatus">Carregando...</div>
+                    <button class="btn-open" onclick="openGate('exit')">Abrir Saída</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="api-status" id="apiStatus">
+            <strong>API Status:</strong> Aguardando primeira requisição...
+        </div>
+    </div>
+
+    <script>
+        // Estado mock do estacionamento
+        let mockData = {
+            parking: [
+                {id: 1, occupied: false},
+                {id: 2, occupied: true},
+                {id: 3, occupied: false},
+                {id: 4, occupied: true},
+                {id: 5, occupied: false},
+                {id: 6, occupied: false}
+            ],
+            gates: {
+                entrance: {open: false, sensor: false},
+                exit: {open: false, sensor: false}
+            }
+        };
+
+        let autoToggleInterval;
+        let gateTimeouts = {};
+
+        // Inicialização
+        function init() {
+            updateStatus();
+            startAutoToggle();
+        }
+
+        // Auto toggle das vagas
+        function startAutoToggle() {
+            if (document.getElementById('autoToggle').checked) {
+                autoToggleInterval = setInterval(() => {
+                    // Altera aleatoriamente uma vaga
+                    const randomIndex = Math.floor(Math.random() * 6);
+                    mockData.parking[randomIndex].occupied = !mockData.parking[randomIndex].occupied;
+                    updateStatus();
+                }, 3000);
+            } else {
+                clearInterval(autoToggleInterval);
+            }
+        }
+
+        // Atualizar interface
+        function updateStatus() {
+            // Atualizar vagas
+            const parkingGrid = document.getElementById('parkingGrid');
+            parkingGrid.innerHTML = '';
+            mockData.parking.forEach(spot => {
+                const div = document.createElement('div');
+                div.className = `parking-spot ${spot.occupied ? 'occupied' : 'free'}`;
+                div.textContent = `Vaga ${spot.id}: ${spot.occupied ? 'Ocupada' : 'Livre'}`;
+                div.onclick = () => toggleSpot(spot.id - 1);
+                parkingGrid.appendChild(div);
+            });
+            
+            // Atualizar cancelas
+            const entranceDiv = document.getElementById('entranceGate');
+            entranceDiv.className = `gate ${mockData.gates.entrance.open ? 'gate-open' : 'gate-closed'}`;
+            document.getElementById('entranceStatus').textContent = 
+                mockData.gates.entrance.open ? 'Aberta' : 'Fechada';
+            
+            const exitDiv = document.getElementById('exitGate');
+            exitDiv.className = `gate ${mockData.gates.exit.open ? 'gate-open' : 'gate-closed'}`;
+            document.getElementById('exitStatus').textContent = 
+                mockData.gates.exit.open ? 'Aberta' : 'Fechada';
+        }
+
+        // Toggle individual de vaga
+        function toggleSpot(index) {
+            mockData.parking[index].occupied = !mockData.parking[index].occupied;
+            updateStatus();
+        }
+
+        // Simular abertura de cancela
+        function openGate(gate) {
+            if (document.getElementById('simulateApi').checked) {
+                // Simula chamada API
+                updateApiStatus(`POST /api/gate/${gate}/open`, 200);
+                
+                // Abre a cancela
+                mockData.gates[gate].open = true;
+                updateStatus();
+                
+                // Fecha automaticamente após 2 segundos
+                clearTimeout(gateTimeouts[gate]);
+                gateTimeouts[gate] = setTimeout(() => {
+                    mockData.gates[gate].open = false;
+                    updateStatus();
+                }, 2000);
+                
+                // Mostra mensagem
+                const message = gate === 'entrance' ? 
+                    'Abrindo cancela de entrada' : 
+                    'Abrindo cancela de saída';
+                alert(message);
+            }
+        }
+
+        // Randomizar vagas
+        function randomizeParking() {
+            mockData.parking.forEach(spot => {
+                spot.occupied = Math.random() > 0.5;
+            });
+            updateStatus();
+        }
+
+        // Toggle todas as cancelas
+        function toggleAllGates() {
+            const entranceOpen = !mockData.gates.entrance.open;
+            const exitOpen = !mockData.gates.exit.open;
+            
+            mockData.gates.entrance.open = entranceOpen;
+            mockData.gates.exit.open = exitOpen;
+            
+            updateStatus();
+            
+            // Fecha automaticamente após 2 segundos
+            setTimeout(() => {
+                mockData.gates.entrance.open = false;
+                mockData.gates.exit.open = false;
+                updateStatus();
+            }, 2000);
+        }
+
+        // Simular status da API
+        function updateApiStatus(endpoint, status) {
+            const apiStatus = document.getElementById('apiStatus');
+            const timestamp = new Date().toLocaleTimeString();
+            apiStatus.innerHTML = `
+                <strong>API Status:</strong> ${timestamp}<br>
+                <strong>Request:</strong> ${endpoint}<br>
+                <strong>Status:</strong> ${status}
+            `;
+        }
+
+        // Simular requisição de status
+        function simulateStatusRequest() {
+            if (document.getElementById('simulateApi').checked) {
+                updateApiStatus('GET /api/parking/status', 200);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('autoToggle').addEventListener('change', startAutoToggle);
+
+        // Simular requisições periódicas
+        setInterval(() => {
+            if (document.getElementById('simulateApi').checked) {
+                simulateStatusRequest();
+            }
+        }, 2000);
+
+        // Inicializar
+        init();
+    </script>
+</body>
+</html>
