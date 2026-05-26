@@ -1,0 +1,94 @@
+@startuml
+
+skinparam BackgroundColor white
+skinparam ClassBorderColor black
+skinparam ClassHeaderBackgroundColor lightgray
+
+interface Relatorio {
+  + gerarRelatorio()
+}
+
+abstract class Pessoa {
+  # int id
+  # String nome
+  + {abstract} exibirDados()
+}
+
+abstract class Patrimonio {
+  # String codigo
+  # String descricao
+  + {abstract} exibirItem()
+}
+
+abstract class RelacionamentoCliente {
+  # String codigo
+  # Cliente cliente
+  + {abstract} detalharRelacionamento()
+}
+
+class Funcionario {
+  - String cargo
+  - List<Patrimonio> patrimonios
+  + vincularPatrimonio(Patrimonio)
+  + exibirDados()
+}
+
+class Cliente {
+  - String empresa
+  + exibirDados()
+}
+
+class Mesa {
+  - int numeroLugares
+  + exibirItem()
+}
+
+class Notebook {
+  - String marca
+  + exibirItem()
+}
+
+class Contrato {
+  - String dataInicio
+  + detalharRelacionamento()
+}
+
+class ContaMarketing {
+  - String campanha
+  + detalharRelacionamento()
+}
+
+class SistemaInventario {
+  - String ra
+  - String nomeAluno
+  - List<Funcionario> funcionarios
+  - List<Cliente> clientes
+  - List<Patrimonio> patrimonios
+  - List<RelacionamentoCliente> relacionamentos
+  + adicionarFuncionario(Funcionario)
+  + adicionarCliente(Cliente)
+  + adicionarPatrimonio(Patrimonio)
+  + adicionarRelacionamento(RelacionamentoCliente)
+  + gerarRelatorio()
+}
+
+Relatorio <|.. SistemaInventario
+
+Pessoa <|-- Funcionario
+Pessoa <|-- Cliente
+
+Patrimonio <|-- Mesa
+Patrimonio <|-- Notebook
+
+RelacionamentoCliente <|-- Contrato
+RelacionamentoCliente <|-- ContaMarketing
+
+Funcionario "1" *--> "0..*" Patrimonio : vincula >
+RelacionamentoCliente "1" *--> "1" Cliente : associa >
+
+SistemaInventario "1" *--> "0..*" Funcionario
+SistemaInventario "1" *--> "0..*" Cliente
+SistemaInventario "1" *--> "0..*" Patrimonio
+SistemaInventario "1" *--> "0..*" RelacionamentoCliente
+
+@enduml
