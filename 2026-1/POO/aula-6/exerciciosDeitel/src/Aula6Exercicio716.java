@@ -1,3 +1,13 @@
+/*
+ * Exercício 7.16 - Utilizando a Instrução for Aprimorada
+ *
+ * Escreva um aplicativo que utilize uma instrução for aprimorada (enhanced for)
+ * para somar os valores double passados pelos argumentos da linha de comando.
+ *
+ * Dica: Utilize o método estático parseDouble da classe Double para converter
+ * uma String em um valor double.
+ */
+
 public class Aula6Exercicio716 {
     public static void main(String[] args) {
         System.out.println("RA: 12530689");

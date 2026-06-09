@@ -1,3 +1,13 @@
+/*
+ * Exercício 7.15 - Argumentos de Linha de Comando
+ *
+ * Reescreva o programa da Figura 7.2 para que o tamanho do array seja
+ * especificado pelo primeiro argumento da linha de comando.
+ *
+ * Caso nenhum argumento seja fornecido, utilize 10 como tamanho padrão do
+ * array.
+ */
+
 import java.security.SecureRandom;
 
 public class Aula6Exercicio715 {

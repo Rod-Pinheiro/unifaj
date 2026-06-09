@@ -1,3 +1,24 @@
+/*
+ * Exercício 7.17 - Jogo de Dados
+ *
+ * Escreva um aplicativo para simular o lançamento de dois dados.
+ *
+ * O aplicativo deve utilizar um objeto da classe Random para lançar o primeiro
+ * dado e novamente para lançar o segundo dado. Em seguida, deve calcular a soma
+ * dos valores obtidos.
+ *
+ * Cada dado pode apresentar valores inteiros de 1 a 6, portanto a soma dos dois
+ * dados pode variar de 2 a 12. A soma 7 é a mais frequente, enquanto as somas 2
+ * e 12 são as menos frequentes.
+ *
+ * A Figura 7.28 apresenta as 36 combinações possíveis de dois dados.
+ *
+ * Seu aplicativo deve lançar os dados 36.000.000 de vezes. Utilize um array
+ * unidimensional para contar o número de ocorrências de cada soma possível.
+ *
+ * Apresente os resultados em formato tabular.
+ */
+
 import java.security.SecureRandom;
 
 public class Aula6Exercicio717 {

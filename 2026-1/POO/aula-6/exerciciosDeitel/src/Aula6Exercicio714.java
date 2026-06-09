@@ -1,3 +1,14 @@
+/*
+ * Exercício 7.14 - Lista de Argumentos de Comprimento Variável
+ *
+ * Escreva um aplicativo que calcule o produto de uma série de inteiros
+ * passados para o método product, utilizando uma lista de argumentos de
+ * comprimento variável (varargs).
+ *
+ * Teste o método com várias chamadas, cada uma contendo uma quantidade
+ * diferente de argumentos.
+ */
+
 public class Aula6Exercicio714 {
 
     public static int product(int... numbers) {

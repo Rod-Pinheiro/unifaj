@@ -1,3 +1,21 @@
+/*
+ * Exercício 7.12 - Eliminação de Duplicatas
+ *
+ * Utilize um array unidimensional para resolver o seguinte problema:
+ *
+ * Escreva um aplicativo que leia cinco números inteiros, cada um entre 10 e
+ * 100, inclusive.
+ *
+ * À medida que cada número for lido, exiba-o somente se ele não for uma
+ * duplicata de um número já informado.
+ *
+ * Considere o pior caso, em que todos os cinco números são diferentes. Utilize
+ * o menor array possível para resolver o problema.
+ *
+ * Após cada entrada do usuário, exiba o conjunto completo dos valores únicos
+ * inseridos até aquele momento.
+ */
+
 import java.util.Scanner;
 
 public class Aula6Exercicio712 {
