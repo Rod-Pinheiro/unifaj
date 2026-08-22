@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-08-21T19:49:00.062Z" agent="5.0 (unknown)" version="22.2.3" type="device">
+  <diagram id="uAMLi6r30DW3EaGzP6L9" name="Classe">
+    <mxGraphModel dx="784" dy="277" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" value="Classe" style="shape=uml;whiteSpace=wrap;html=1;aspect=fixed;fillColor=#ffffff;strokeColor=#000000;fontColor=#000000" parent="root">
+          <mxGeometry x="20" y="20" width="744" height="237" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

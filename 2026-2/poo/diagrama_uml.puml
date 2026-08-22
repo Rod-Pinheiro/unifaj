@@ -1,0 +1,309 @@
+@startuml Sistema de Plano de Saude - Diagrama de Classes UML
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' =========================================================
+' INTERFACE
+' =========================================================
+
+interface Agendavel {
+    +agendar(dataHora: DateTime): void
+    +cancelar(): void
+}
+
+' =========================================================
+' HIERARQUIA DE PROFISSIONAIS
+' =========================================================
+
+abstract class ProfissionalSaude {
+    -id: int
+    -nome: String
+    -cpf: String
+    -telefone: String
+    -email: String
+
+    +cadastrar(): void
+    +atualizarDados(): void
+}
+
+class Medico {
+    -crm: String
+
+    +realizarConsulta(): void
+    +solicitarExame(): void
+    +avaliarExame(): void
+}
+
+class Fisioterapeuta {
+    -crefito: String
+    -especialidade: String
+
+    +realizarAvaliacao(): void
+    +registrarEvolucao(): void
+}
+
+ProfissionalSaude <|-- Medico
+ProfissionalSaude <|-- Fisioterapeuta
+
+' =========================================================
+' HIERARQUIA DE ESTABELECIMENTOS
+' =========================================================
+
+abstract class EstabelecimentoSaude {
+    -id: int
+    -nome: String
+    -cnpj: String
+    -endereco: String
+    -telefone: String
+
+    +cadastrar(): void
+    +atualizarDados(): void
+}
+
+class Hospital {
+    -quantidadeLeitos: int
+
+    +internarPaciente(): void
+    +darAlta(): void
+    +consultarLeitosDisponiveis(): int
+}
+
+class Clinica {
+    -quantidadeConsultorios: int
+
+    +agendarConsulta(): void
+    +cancelarConsulta(): void
+}
+
+EstabelecimentoSaude <|-- Hospital
+EstabelecimentoSaude <|-- Clinica
+
+' =========================================================
+' CLASSES DE NEGOCIO
+' =========================================================
+
+class Paciente {
+    -id: int
+    -nome: String
+    -cpf: String
+    -dataNascimento: Date
+    -telefone: String
+    -email: String
+
+    +agendarConsulta(): void
+    +cancelarConsulta(): void
+    +consultarHistorico(): void
+}
+
+class PlanoSaude {
+    -id: int
+    -nome: String
+    -numeroRegistro: String
+    -tipo: String
+    -valorMensal: double
+
+    +verificarCobertura(): boolean
+    +adicionarPaciente(): void
+    +removerPaciente(): void
+}
+
+class Consulta {
+    -id: int
+    -dataHora: DateTime
+    -status: String
+    -observacoes: String
+
+    +agendar(dataHora: DateTime): void
+    +cancelar(): void
+    +realizar(): void
+    +registrarObservacao(): void
+}
+
+class Exame {
+    -id: int
+    -tipo: String
+    -dataSolicitacao: Date
+    -dataRealizacao: Date
+    -resultado: String
+    -status: String
+
+    +solicitar(): void
+    +realizar(): void
+    +registrarResultado(): void
+}
+
+class Laboratorio {
+    -id: int
+    -nome: String
+    -cnpj: String
+    -endereco: String
+    -telefone: String
+    -credenciado: boolean
+
+    +realizarExame(): void
+    +emitirResultado(): void
+    +verificarCredenciamento(): boolean
+}
+
+class Internacao {
+    -id: int
+    -dataEntrada: Date
+    -dataSaida: Date
+    -motivo: String
+    -status: String
+
+    +internar(): void
+    +registrarAlta(): void
+    +atualizarStatus(): void
+}
+
+class Tratamento {
+    -id: int
+    -descricao: String
+    -dataInicio: Date
+    -dataFim: Date
+    -status: String
+
+    +iniciar(): void
+    +finalizar(): void
+    +atualizarTratamento(): void
+}
+
+class EspecialidadeMedica {
+    -id: int
+    -nome: String
+    -descricao: String
+
+    +cadastrar(): void
+    +atualizar(): void
+    +consultar(): void
+}
+
+' =========================================================
+' IMPLEMENTACAO DA INTERFACE
+' =========================================================
+
+Consulta ..|> Agendavel
+
+' =========================================================
+' RELACIONAMENTOS DO DOMINIO
+' =========================================================
+
+' Plano de saude possui pacientes
+PlanoSaude "1" -- "0..*" Paciente : possui
+
+' Paciente marca consultas
+Paciente "1" -- "0..*" Consulta : agenda
+
+' Medico realiza consultas
+Medico "1" -- "0..*" Consulta : realiza
+
+' Medico possui especialidades
+Medico "0..*" -- "1..*" EspecialidadeMedica : possui
+
+' Consulta pode gerar solicitacoes de exames
+Consulta "1" -- "0..*" Exame : solicita
+
+' Medico solicita exames
+Medico "1" -- "0..*" Exame : solicita
+
+' Laboratorio realiza exames
+Laboratorio "1" -- "0..*" Exame : realiza
+
+' Paciente possui exames em seu historico
+Paciente "1" -- "0..*" Exame : possui
+
+' Paciente pode ter internacoes
+Paciente "1" -- "0..*" Internacao : possui
+
+' Hospital realiza internacoes
+Hospital "1" -- "0..*" Internacao : realiza
+
+' Internacao possui tratamentos
+Internacao "1" -- "1..*" Tratamento : possui
+
+' Consultas podem ocorrer em clinicas
+Clinica "1" -- "0..*" Consulta : realiza
+
+' =========================================================
+' CONTROLLER
+' =========================================================
+
+package "Controller" {
+
+    class PacienteController {
+        +cadastrarPaciente(): void
+        +buscarPaciente(id: int): Paciente
+        +atualizarPaciente(): void
+        +excluirPaciente(id: int): void
+    }
+
+    class ConsultaController {
+        +agendarConsulta(): void
+        +buscarConsulta(id: int): Consulta
+        +cancelarConsulta(id: int): void
+        +listarConsultas(): List
+    }
+}
+
+' =========================================================
+' SERVICE
+' =========================================================
+
+package "Service" {
+
+    class PacienteService {
+        +cadastrar(paciente: Paciente): void
+        +buscarPorId(id: int): Paciente
+        +atualizar(paciente: Paciente): void
+        +excluir(id: int): void
+        +validarPaciente(paciente: Paciente): boolean
+    }
+
+    class ConsultaService {
+        +agendar(consulta: Consulta): void
+        +cancelar(id: int): void
+        +realizar(id: int): void
+        +validarHorario(dataHora: DateTime): boolean
+    }
+}
+
+' =========================================================
+' DAO
+' =========================================================
+
+package "DAO" {
+
+    class PacienteDAO {
+        +salvar(paciente: Paciente): void
+        +buscarPorId(id: int): Paciente
+        +buscarTodos(): List
+        +atualizar(paciente: Paciente): void
+        +excluir(id: int): void
+    }
+
+    class ConsultaDAO {
+        +salvar(consulta: Consulta): void
+        +buscarPorId(id: int): Consulta
+        +buscarPorPaciente(idPaciente: int): List
+        +buscarPorMedico(idMedico: int): List
+        +atualizar(consulta: Consulta): void
+        +excluir(id: int): void
+    }
+}
+
+' =========================================================
+' RELACIONAMENTOS DAS CAMADAS
+' =========================================================
+
+PacienteController --> PacienteService : utiliza
+PacienteService --> PacienteDAO : utiliza
+PacienteDAO --> Paciente : acessa
+
+ConsultaController --> ConsultaService : utiliza
+ConsultaService --> ConsultaDAO : utiliza
+ConsultaDAO --> Consulta : acessa
+
+caption Aluno: Rodolfo Rodrigues Pinheiro | RA: 12530689
+
+@enduml
