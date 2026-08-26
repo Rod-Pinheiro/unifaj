@@ -90,6 +90,7 @@ LEFT JOIN automovel a ON p.id = a.id_pessoa;
 DROP TABLE IF EXISTS pessoa_automovel;
 
 CREATE TABLE pessoa_automovel (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     modelo VARCHAR(45) NOT NULL,
     preco DECIMAL(10,2) NOT NULL
@@ -122,7 +123,7 @@ ORDER BY preco_total DESC;
 
 UPDATE automovel
 SET preco = 48000.00
-WHERE modelo = 'Gol' AND id_pessoa = 1;
+WHERE id_automovel = 1;
 
 -- 10) Utilizando subquery, atualize na nova tabela o preço
 --     de todos os registros do automóvel que teve o preço

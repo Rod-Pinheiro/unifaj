@@ -64,27 +64,23 @@ SELECT nome FROM filho;
 --    comuns entre pais e filhos
 
 SELECT nome FROM pai
-INTERSECT
-SELECT nome FROM filho;
+WHERE nome IN (SELECT nome FROM filho);
 
 -- 7) Buscar e exibir em 1 coluna só o nome de todos os
 --    pais que o nome não é de algum filho
 
 SELECT nome FROM pai
-EXCEPT
-SELECT nome FROM filho;
+WHERE nome NOT IN (SELECT nome FROM filho);
 
 -- 8) Buscar e exibir em 1 coluna só o nome de todos os
 --    pais e filhos, mas o nome do pai não pode ser de
 --    algum filho e vice-versa
 
 SELECT nome FROM pai
-EXCEPT
-SELECT nome FROM filho
+WHERE nome NOT IN (SELECT nome FROM filho)
 UNION
 SELECT nome FROM filho
-EXCEPT
-SELECT nome FROM pai;
+WHERE nome NOT IN (SELECT nome FROM pai);
 
 -- 9) Buscar o nome do pai e a quantidade de filhos
 
@@ -145,13 +141,10 @@ CREATE TABLE pai_filho (
 -- 14) Utilizando o WITH escrever todas as informações de
 --     pai e filho na tabela pai_filho
 
-WITH dados AS (
-    SELECT
-        p.nome AS nome_pai,
-        f.nome AS nome_filho
-    FROM pai p
-    JOIN filho f ON p.id = f.id_pai
-)
 INSERT INTO pai_filho (nome_pai, nome_filho)
 SELECT nome_pai, nome_filho
-FROM dados;
+FROM (
+    SELECT p.nome AS nome_pai, f.nome AS nome_filho
+    FROM pai p
+    JOIN filho f ON p.id = f.id_pai
+) AS dados;
